@@ -81,7 +81,6 @@ export default function App() {
   const audioRef = useRef(null);
   const lastSaveRef = useRef(0);
 
-  // Kiraan detik ke Sabtu 14 Nov 2026, 7:30 Pagi
   useEffect(() => {
     const target = new Date('2026-11-14T07:30:00+08:00').getTime();
     const timer = setInterval(() => {
@@ -101,9 +100,7 @@ export default function App() {
     return () => clearInterval(timer);
   }, []);
 
-  // Fungsi tarik data terkini (menyokong mod senyap untuk auto-sync)
   const fetchLatestState = useCallback(async (silent = false) => {
-    // Elak auto-sync tindih data kalau pengguna baru sahaja klik dalam masa 3 saat
     if (silent && Date.now() - lastSaveRef.current < 3000) return;
 
     if (!silent) setSyncing(true);
@@ -130,7 +127,6 @@ export default function App() {
     }
   }, []);
 
-  // Auto-Sync setiap 5 saat & setiap kali buka semula skrin telefon
   useEffect(() => {
     fetchLatestState(false);
 
@@ -246,7 +242,6 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-slate-950 text-white font-sans relative overflow-x-hidden selection:bg-sky-400/30">
-      {/* Latar Belakang Mesh Gradient iOS */}
       <div className="fixed inset-0 pointer-events-none z-0">
         <div className="absolute -top-24 -left-24 w-80 h-80 bg-sky-500/30 rounded-full blur-3xl animate-pulse" />
         <div className="absolute top-1/3 -right-24 w-96 h-96 bg-indigo-500/25 rounded-full blur-3xl" />
@@ -261,7 +256,6 @@ export default function App() {
         onError={() => setBgmMissing(true)}
       />
 
-      {/* ================= SKRIN KUNCI iOS ================= */}
       <AnimatePresence>
         {!unlocked && (
           <motion.div
@@ -303,9 +297,7 @@ export default function App() {
         )}
       </AnimatePresence>
 
-      {/* ================= KANDUNGAN UTAMA ================= */}
       <main className="relative z-10 max-w-md mx-auto px-4 pt-4 pb-20">
-        {/* Dynamic Island Bar (Music + Auto-Sync Indicator) */}
         <div className="sticky top-3 z-30 flex flex-col items-center mb-6">
           <div className="bg-black/70 backdrop-blur-2xl border border-white/15 rounded-full px-4 py-2 flex items-center gap-3.5 shadow-lg">
             <button onClick={toggleMusic} className="flex items-center gap-2 text-xs font-medium text-white/90 cursor-pointer">
@@ -328,12 +320,11 @@ export default function App() {
           </div>
           {bgmMissing && (
             <span className="mt-1.5 text-[10px] text-amber-300 bg-black/60 px-2.5 py-0.5 rounded-full">
-              Letak fail public/bgm.mp3 untuk hidupkan lagu
+              Letak fail public/bgm.m4a untuk hidupkan lagu
             </span>
           )}
         </div>
 
-        {/* Kad Utama Tajuk & Countdown */}
         <section className="bg-white/10 backdrop-blur-2xl border border-white/20 rounded-3xl p-6 mb-5 shadow-xl">
           <div className="flex items-center justify-between mb-2">
             <span className="text-[11px] font-semibold uppercase tracking-wider text-sky-300">
@@ -384,7 +375,6 @@ export default function App() {
           </div>
         </section>
 
-        {/* Segmented Control 3 Tab Gaya iOS */}
         <div className="grid grid-cols-3 gap-1 bg-white/10 backdrop-blur-xl p-1.5 rounded-2xl border border-white/15 mb-5">
           <button
             onClick={() => setMainTab('flow')}
@@ -412,7 +402,6 @@ export default function App() {
           </button>
         </div>
 
-        {/* ================= TAB 1: JADUAL PERJALANAN ================= */}
         {mainTab === 'flow' && (
           <motion.section initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
             <div className="flex gap-2 mb-4">
@@ -462,7 +451,6 @@ export default function App() {
           </motion.section>
         )}
 
-        {/* ================= TAB 2: SENARAI BARANG ================= */}
         {mainTab === 'prep' && (
           <motion.section initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
             <form onSubmit={addCustomPrep} className="flex gap-2">
@@ -530,7 +518,6 @@ export default function App() {
           </motion.section>
         )}
 
-        {/* ================= TAB 3: PINTASAN WAZE & NOTA PENTING ================= */}
         {mainTab === 'nav' && (
           <motion.section initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="space-y-3.5">
             <div className="bg-sky-500/15 backdrop-blur-xl border border-sky-400/30 rounded-2xl p-4 flex gap-3 items-start">
