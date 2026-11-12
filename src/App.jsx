@@ -3,7 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import confetti from 'canvas-confetti';
 import {
   Lock, Sparkles, Music, VolumeX, Calendar, Briefcase, Navigation,
-  CheckCircle2, Circle, Plus, MapPin, CloudFog, RefreshCw, Trash2, ExternalLink, Info, ChevronDown
+  CheckCircle2, Circle, Plus, MapPin, CloudFog, RefreshCw, Trash2,
+  ExternalLink, Info, ChevronDown, Sun, Moon
 } from 'lucide-react';
 
 const INITIAL_DATA = {
@@ -97,6 +98,10 @@ function normalizeState(raw) {
 
 export default function App() {
   const [unlocked, setUnlocked] = useState(false);
+  const [isDark, setIsDark] = useState(() => {
+    const savedTheme = localStorage.getItem('jujuan_theme');
+    return savedTheme ? savedTheme === 'dark' : true;
+  });
   const [isPlaying, setIsPlaying] = useState(false);
   const [bgmMissing, setBgmMissing] = useState(false);
   const [mainTab, setMainTab] = useState('flow');
@@ -119,6 +124,18 @@ export default function App() {
   const activePlan = stateData.activePlan === 'B' ? 'B' : 'A';
   const currentFlowKey = activePlan === 'B' ? 'flowB' : 'flow';
   const currentFlow = stateData[currentFlowKey] || INITIAL_DATA.flow;
+
+  // Kemas kini warna status bar telefon mengikut tema gelap/cerah
+  useEffect(() => {
+    localStorage.setItem('jujuan_theme', isDark ? 'dark' : 'light');
+    const metaTheme = document.querySelector('meta[name="theme-color"]');
+    if (metaTheme) {
+      metaTheme.setAttribute('content', isDark ? '#020617' : '#f0f9ff');
+    }
+    document.body.style.backgroundColor = isDark ? '#020617' : '#f0f9ff';
+  }, [isDark]);
+
+  const toggleTheme = () => setIsDark((prev) => !prev);
 
   const toggleCategory = (cat) => {
     setOpenCats((prev) => ({ ...prev, [cat]: !prev[cat] }));
@@ -286,12 +303,40 @@ export default function App() {
   const flowPercent = Math.round((allFlow.filter((i) => i.done).length / allFlow.length) * 100);
   const prepPercent = Math.round((stateData.prep.filter((i) => i.done).length / stateData.prep.length) * 100);
 
+  // Kelas warna dinamik mengikut Dark Mode vs Light Mode (iOS Glassmorphism)
+  const glassCard = isDark
+    ? 'bg-white/10 border-white/20 shadow-xl'
+    : 'bg-white/70 border-white/90 shadow-xl shadow-sky-900/5';
+  const subGlass = isDark
+    ? 'bg-white/10 border-white/15'
+    : 'bg-white/65 border-slate-200/80 shadow-md shadow-sky-900/5';
+  const textMuted = isDark ? 'text-white/70' : 'text-slate-600';
+  const textSoft = isDark ? 'text-white/55' : 'text-slate-500';
+  const accentText = isDark ? 'text-sky-300' : 'text-sky-600';
+
   return (
-    <div className="min-h-screen bg-slate-950 text-white font-sans relative overflow-x-hidden selection:bg-sky-400/30">
+    <div
+      className={`min-h-screen font-sans relative overflow-x-hidden transition-colors duration-500 selection:bg-sky-400/30 ${
+        isDark ? 'bg-slate-950 text-white' : 'bg-sky-50 text-slate-900'
+      }`}
+    >
+      {/* Latar Belakang Aurora Glassmorphism */}
       <div className="fixed inset-0 pointer-events-none z-0">
-        <div className="absolute -top-24 -left-24 w-80 h-80 bg-sky-500/30 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute top-1/3 -right-24 w-96 h-96 bg-indigo-500/25 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 left-1/4 w-80 h-80 bg-pink-500/20 rounded-full blur-3xl" />
+        <div
+          className={`absolute -top-24 -left-24 w-80 h-80 rounded-full blur-3xl animate-pulse transition-colors duration-500 ${
+            isDark ? 'bg-sky-500/30' : 'bg-sky-300/55'
+          }`}
+        />
+        <div
+          className={`absolute top-1/3 -right-24 w-96 h-96 rounded-full blur-3xl transition-colors duration-500 ${
+            isDark ? 'bg-indigo-500/25' : 'bg-indigo-300/45'
+          }`}
+        />
+        <div
+          className={`absolute bottom-0 left-1/4 w-80 h-80 rounded-full blur-3xl transition-colors duration-500 ${
+            isDark ? 'bg-pink-500/20' : 'bg-pink-300/40'
+          }`}
+        />
       </div>
 
       <audio
@@ -302,39 +347,78 @@ export default function App() {
         onError={() => setBgmMissing(true)}
       />
 
+      {/* Skrin Kunci iOS */}
       <AnimatePresence>
         {!unlocked && (
           <motion.div
             exit={{ y: '-100%', opacity: 0 }}
             transition={{ duration: 0.65, ease: 'easeInOut' }}
-            className="fixed inset-0 z-50 flex flex-col justify-between items-center p-6 bg-slate-950/75 backdrop-blur-2xl"
+            className={`fixed inset-0 z-50 flex flex-col justify-between items-center p-6 backdrop-blur-2xl transition-colors duration-500 ${
+              isDark ? 'bg-slate-950/75 text-white' : 'bg-sky-50/80 text-slate-900'
+            }`}
           >
-            <div className="mt-14 text-center">
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 border border-white/15 text-xs text-sky-200 mb-4">
-                <Lock className="w-3 h-3" /> Private Trip Pass
-              </div>
-              <h1 className="text-5xl font-bold tracking-tight bg-linear-to-b from-white to-white/70 bg-clip-text text-transparent">
-                14 - 15 Nov
-              </h1>
-              <p className="text-sm text-white/70 mt-1">Sabtu & Ahad • Genting Highlands</p>
+            {/* Butang Tema Pada Skrin Kunci */}
+            <div className="w-full max-w-sm flex justify-end pt-2">
+              <button
+                type="button"
+                onClick={toggleTheme}
+                aria-label="Tukar tema"
+                className={`p-2.5 rounded-full backdrop-blur-xl border transition-all cursor-pointer ${
+                  isDark
+                    ? 'bg-white/10 border-white/20 text-amber-300 hover:bg-white/20'
+                    : 'bg-white/75 border-slate-200 text-indigo-600 shadow-sm hover:bg-white'
+                }`}
+              >
+                {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+              </button>
             </div>
 
-            <div className="w-full max-w-sm bg-white/12 backdrop-blur-xl border border-white/20 rounded-3xl p-5 shadow-2xl">
-              <div className="flex items-center justify-between text-xs text-white/60 mb-2">
-                <span className="font-semibold text-sky-300 flex items-center gap-1.5">
+            <div className="text-center">
+              <div
+                className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full border text-xs mb-4 ${
+                  isDark
+                    ? 'bg-white/10 border-white/15 text-sky-200'
+                    : 'bg-white/80 border-sky-200 text-sky-700 shadow-sm'
+                }`}
+              >
+                <Lock className="w-3 h-3" /> Private Trip Pass
+              </div>
+              <h1
+                className={`text-5xl font-bold tracking-tight bg-clip-text text-transparent ${
+                  isDark
+                    ? 'bg-linear-to-b from-white to-white/70'
+                    : 'bg-linear-to-b from-slate-900 to-slate-600'
+                }`}
+              >
+                14 - 15 Nov
+              </h1>
+              <p className={`text-sm mt-1 ${textMuted}`}>Sabtu & Ahad • Genting Highlands</p>
+            </div>
+
+            <div
+              className={`w-full max-w-sm backdrop-blur-xl border rounded-3xl p-5 shadow-2xl ${
+                isDark ? 'bg-white/12 border-white/20' : 'bg-white/80 border-white shadow-sky-900/10'
+              }`}
+            >
+              <div className={`flex items-center justify-between text-xs mb-2 ${textSoft}`}>
+                <span className={`font-semibold flex items-center gap-1.5 ${accentText}`}>
                   <CloudFog className="w-4 h-4" /> TRIP REMINDER
                 </span>
                 <span>Sekarang</span>
               </div>
-              <h2 className="text-xl font-bold text-white">Jujuan Go Genting 🎢🌫️</h2>
-              <p className="text-xs text-white/75 mt-1 leading-relaxed">
+              <h2 className="text-xl font-bold">Jujuan Go Genting 🎢🌫️</h2>
+              <p className={`text-xs mt-1 leading-relaxed ${textMuted}`}>
                 Kad tentatif fleksibel (Pelan A & Pelan B), lokasi Waze dan senarai barang kita dah siap!
               </p>
             </div>
 
             <button
               onClick={handleUnlock}
-              className="mb-10 w-full max-w-xs py-4 px-6 rounded-full bg-white/20 hover:bg-white/30 active:scale-95 backdrop-blur-xl border border-white/30 shadow-xl flex items-center justify-center gap-2 font-semibold text-sm transition-all cursor-pointer"
+              className={`mb-10 w-full max-w-xs py-4 px-6 rounded-full active:scale-95 backdrop-blur-xl border shadow-xl flex items-center justify-center gap-2 font-semibold text-sm transition-all cursor-pointer ${
+                isDark
+                  ? 'bg-white/20 hover:bg-white/30 border-white/30 text-white'
+                  : 'bg-slate-900 hover:bg-slate-800 border-slate-800 text-white shadow-slate-900/20'
+              }`}
             >
               <Sparkles className="w-4 h-4 text-sky-300" />
               Tap to Open Jujuan Go Genting
@@ -344,45 +428,74 @@ export default function App() {
       </AnimatePresence>
 
       <main className="relative z-10 max-w-md mx-auto px-4 pt-4 pb-20">
+        {/* Dynamic Island Bar (BGM + Auto-Sync + Dark/Light Switch) */}
         <div className="sticky top-3 z-30 flex flex-col items-center mb-6">
-          <div className="bg-black/70 backdrop-blur-2xl border border-white/15 rounded-full px-4 py-2 flex items-center gap-3.5 shadow-lg">
-            <button onClick={toggleMusic} className="flex items-center gap-2 text-xs font-medium text-white/90 cursor-pointer">
+          <div
+            className={`backdrop-blur-2xl border rounded-full px-4 py-2 flex items-center gap-3 shadow-lg transition-colors duration-300 ${
+              isDark
+                ? 'bg-black/75 border-white/15 text-white'
+                : 'bg-white/85 border-slate-200/90 text-slate-800 shadow-sky-900/10'
+            }`}
+          >
+            <button onClick={toggleMusic} className="flex items-center gap-1.5 text-xs font-medium cursor-pointer">
               {isPlaying ? (
-                <Music className="w-3.5 h-3.5 text-sky-400 animate-bounce" />
+                <Music className="w-3.5 h-3.5 text-sky-500 animate-bounce" />
               ) : (
-                <VolumeX className="w-3.5 h-3.5 text-white/50" />
+                <VolumeX className={`w-3.5 h-3.5 ${textSoft}`} />
               )}
-              <span>{isPlaying ? 'BGM Playing' : 'Play BGM'}</span>
+              <span>{isPlaying ? 'BGM On' : 'Play BGM'}</span>
             </button>
-            <div className="w-px h-3.5 bg-white/20" />
+
+            <div className={`w-px h-3.5 ${isDark ? 'bg-white/20' : 'bg-slate-300'}`} />
+
             <button
               onClick={() => fetchLatestState(false)}
-              className="flex items-center gap-1.5 text-xs text-sky-300 cursor-pointer"
+              className={`flex items-center gap-1.5 text-xs font-medium cursor-pointer ${accentText}`}
             >
-              <span className={`w-2 h-2 rounded-full ${isLive ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'}`} />
+              <span className={`w-2 h-2 rounded-full ${isLive ? 'bg-emerald-500 animate-pulse' : 'bg-amber-400'}`} />
               <RefreshCw className={`w-3 h-3 ${syncing ? 'animate-spin' : ''}`} />
               <span>{isLive ? 'Auto-Sync' : 'Local'}</span>
             </button>
+
+            <div className={`w-px h-3.5 ${isDark ? 'bg-white/20' : 'bg-slate-300'}`} />
+
+            <button
+              type="button"
+              onClick={toggleTheme}
+              aria-label="Tukar mod gelap atau cerah"
+              className={`flex items-center gap-1 text-xs font-semibold cursor-pointer transition-colors ${
+                isDark ? 'text-amber-300 hover:text-amber-200' : 'text-indigo-600 hover:text-indigo-500'
+              }`}
+            >
+              {isDark ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5" />}
+              <span>{isDark ? 'Light' : 'Dark'}</span>
+            </button>
           </div>
+
           {bgmMissing && (
-            <span className="mt-1.5 text-[10px] text-amber-300 bg-black/60 px-2.5 py-0.5 rounded-full">
+            <span className="mt-1.5 text-[10px] text-amber-300 bg-black/75 px-2.5 py-0.5 rounded-full">
               Letak fail public/bgm.m4a untuk hidupkan lagu
             </span>
           )}
         </div>
 
-        <section className="bg-white/10 backdrop-blur-2xl border border-white/20 rounded-3xl p-6 mb-5 shadow-xl">
+        {/* Kad Utama Tajuk & Countdown */}
+        <section className={`backdrop-blur-2xl border rounded-3xl p-6 mb-5 transition-colors duration-300 ${glassCard}`}>
           <div className="flex items-center justify-between mb-2">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-sky-300">
+            <span className={`text-[11px] font-semibold uppercase tracking-wider ${accentText}`}>
               {activePlan === 'A' ? 'Pelan A • Sabtu SkyWorlds' : 'Pelan B • Ahad SkyWorlds'}
             </span>
-            <span className="text-xs bg-white/15 px-2.5 py-0.5 rounded-full border border-white/10">
+            <span
+              className={`text-xs px-2.5 py-0.5 rounded-full border ${
+                isDark ? 'bg-white/15 border-white/10 text-white' : 'bg-sky-100/80 border-sky-200 text-sky-800'
+              }`}
+            >
               15°C Misty Vibe
             </span>
           </div>
           <h1 className="text-3xl font-bold tracking-tight">Jujuan Go Genting</h1>
-          <p className="text-xs text-white/70 flex items-center gap-1 mt-1 mb-5">
-            <MapPin className="w-3.5 h-3.5 text-pink-300" /> SkyWorlds & Highland Breeze @ Ion Delemen
+          <p className={`text-xs flex items-center gap-1 mt-1 mb-5 ${textMuted}`}>
+            <MapPin className="w-3.5 h-3.5 text-pink-500" /> SkyWorlds & Highland Breeze @ Ion Delemen
           </p>
 
           <div className="grid grid-cols-4 gap-2 text-center mb-5">
@@ -392,80 +505,95 @@ export default function App() {
               { label: 'Minit', val: countdown.m },
               { label: 'Saat', val: countdown.s }
             ].map((item) => (
-              <div key={item.label} className="bg-black/30 border border-white/10 rounded-2xl py-2.5">
-                <div className="text-xl font-bold text-white">{item.val}</div>
-                <div className="text-[10px] uppercase text-white/55">{item.label}</div>
+              <div
+                key={item.label}
+                className={`border rounded-2xl py-2.5 transition-colors ${
+                  isDark ? 'bg-black/30 border-white/10' : 'bg-sky-950/5 border-slate-200/80'
+                }`}
+              >
+                <div className="text-xl font-bold">{item.val}</div>
+                <div className={`text-[10px] uppercase ${textSoft}`}>{item.label}</div>
               </div>
             ))}
           </div>
 
           <div className="space-y-2.5 text-xs">
             <div>
-              <div className="flex justify-between text-white/80 mb-1">
+              <div className={`flex justify-between mb-1 ${textMuted}`}>
                 <span>Persediaan Barang (Prep)</span>
-                <span className="font-semibold text-sky-300">{prepPercent}%</span>
+                <span className={`font-semibold ${accentText}`}>{prepPercent}%</span>
               </div>
-              <div className="h-2 bg-black/30 rounded-full overflow-hidden">
-                <div className="h-full bg-linear-to-r from-sky-400 to-indigo-400 transition-all duration-500" style={{ width: `${prepPercent}%` }} />
+              <div className={`h-2 rounded-full overflow-hidden ${isDark ? 'bg-black/30' : 'bg-slate-200'}`}>
+                <div
+                  className="h-full bg-linear-to-r from-sky-400 to-indigo-500 transition-all duration-500"
+                  style={{ width: `${prepPercent}%` }}
+                />
               </div>
             </div>
             <div>
-              <div className="flex justify-between text-white/80 mb-1">
+              <div className={`flex justify-between mb-1 ${textMuted}`}>
                 <span>Perjalanan (Pelan {activePlan})</span>
-                <span className="font-semibold text-emerald-300">{flowPercent}%</span>
+                <span className={`font-semibold ${isDark ? 'text-emerald-300' : 'text-emerald-600'}`}>
+                  {flowPercent}%
+                </span>
               </div>
-              <div className="h-2 bg-black/30 rounded-full overflow-hidden">
-                <div className="h-full bg-linear-to-r from-emerald-400 to-teal-400 transition-all duration-500" style={{ width: `${flowPercent}%` }} />
+              <div className={`h-2 rounded-full overflow-hidden ${isDark ? 'bg-black/30' : 'bg-slate-200'}`}>
+                <div
+                  className="h-full bg-linear-to-r from-emerald-400 to-teal-500 transition-all duration-500"
+                  style={{ width: `${flowPercent}%` }}
+                />
               </div>
             </div>
           </div>
         </section>
 
-        <div className="grid grid-cols-3 gap-1 bg-white/10 backdrop-blur-xl p-1.5 rounded-2xl border border-white/15 mb-5">
-          <button
-            onClick={() => setMainTab('flow')}
-            className={`py-2.5 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
-              mainTab === 'flow' ? 'bg-white text-slate-950 shadow-md' : 'text-white/75'
-            }`}
-          >
-            <Calendar className="w-3.5 h-3.5" /> Jadual
-          </button>
-          <button
-            onClick={() => setMainTab('prep')}
-            className={`py-2.5 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
-              mainTab === 'prep' ? 'bg-white text-slate-950 shadow-md' : 'text-white/75'
-            }`}
-          >
-            <Briefcase className="w-3.5 h-3.5" /> Barang
-          </button>
-          <button
-            onClick={() => setMainTab('nav')}
-            className={`py-2.5 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
-              mainTab === 'nav' ? 'bg-white text-slate-950 shadow-md' : 'text-white/75'
-            }`}
-          >
-            <Navigation className="w-3.5 h-3.5" /> Waze
-          </button>
+        {/* Tab Navigasi Utama */}
+        <div
+          className={`grid grid-cols-3 gap-1 backdrop-blur-xl p-1.5 rounded-2xl border mb-5 transition-colors ${subGlass}`}
+        >
+          {[
+            { id: 'flow', label: 'Jadual', Icon: Calendar },
+            { id: 'prep', label: 'Barang', Icon: Briefcase },
+            { id: 'nav', label: 'Waze', Icon: Navigation }
+          ].map(({ id, label, Icon }) => (
+            <button
+              key={id}
+              onClick={() => setMainTab(id)}
+              className={`py-2.5 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                mainTab === id
+                  ? isDark
+                    ? 'bg-white text-slate-950 shadow-md'
+                    : 'bg-slate-900 text-white shadow-md'
+                  : textMuted
+              }`}
+            >
+              <Icon className="w-3.5 h-3.5" /> {label}
+            </button>
+          ))}
         </div>
 
+        {/* TAB 1: JADUAL */}
         {mainTab === 'flow' && (
           <motion.section initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
-            {/* Suis Tukar Pelan A / Pelan B */}
-            <div className="bg-white/10 backdrop-blur-2xl border border-white/15 rounded-2xl p-3 mb-4">
+            <div className={`backdrop-blur-2xl border rounded-2xl p-3 mb-4 ${subGlass}`}>
               <div className="flex items-center justify-between px-1 mb-2">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-sky-300">
+                <span className={`text-[11px] font-bold uppercase tracking-wider ${accentText}`}>
                   Pilih Mod Perjalanan (Auto-Sync)
                 </span>
-                <span className="text-[10px] text-white/60">Tiket Open-Date</span>
+                <span className={`text-[10px] ${textSoft}`}>Tiket Open-Date</span>
               </div>
-              <div className="grid grid-cols-2 gap-1.5 bg-black/30 p-1 rounded-xl border border-white/10">
+              <div
+                className={`grid grid-cols-2 gap-1.5 p-1 rounded-xl border ${
+                  isDark ? 'bg-black/30 border-white/10' : 'bg-slate-200/70 border-slate-300/60'
+                }`}
+              >
                 <button
                   type="button"
                   onClick={() => switchPlan('A')}
                   className={`py-2 px-2 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                     activePlan === 'A'
-                      ? 'bg-sky-400 text-slate-950 shadow-md'
-                      : 'text-white/70 hover:text-white'
+                      ? 'bg-sky-500 text-white shadow-md'
+                      : `${textMuted} hover:opacity-100`
                   }`}
                 >
                   🎢 Pelan A: Sabtu
@@ -475,14 +603,14 @@ export default function App() {
                   onClick={() => switchPlan('B')}
                   className={`py-2 px-2 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                     activePlan === 'B'
-                      ? 'bg-indigo-400 text-slate-950 shadow-md'
-                      : 'text-white/70 hover:text-white'
+                      ? 'bg-indigo-500 text-white shadow-md'
+                      : `${textMuted} hover:opacity-100`
                   }`}
                 >
                   🌫️ Pelan B: Ahad
                 </button>
               </div>
-              <p className="text-[11px] text-white/70 mt-2 px-1 leading-relaxed">
+              <p className={`text-[11px] mt-2 px-1 leading-relaxed ${textMuted}`}>
                 {activePlan === 'A'
                   ? 'Sabtu pagi terus masuk SkyWorlds, malam check-in & Ahad bangun lambat santai.'
                   : 'Sabtu gerak santai & check-in 3:00 PM segar, Ahad check-out 9:15 AM baru masuk SkyWorlds!'}
@@ -496,8 +624,12 @@ export default function App() {
                   onClick={() => setDayTab(d)}
                   className={`flex-1 py-2 rounded-xl text-xs font-semibold capitalize border transition-all cursor-pointer ${
                     dayTab === d
-                      ? 'bg-sky-400/25 border-sky-300/50 text-white'
-                      : 'bg-white/5 border-white/10 text-white/60'
+                      ? isDark
+                        ? 'bg-sky-400/25 border-sky-300/50 text-white'
+                        : 'bg-sky-500 border-sky-500 text-white shadow-sm'
+                      : isDark
+                        ? 'bg-white/5 border-white/10 text-white/60'
+                        : 'bg-white/60 border-slate-200 text-slate-600'
                   }`}
                 >
                   {d === 'sabtu' ? 'Sabtu (14 Nov)' : 'Ahad (15 Nov)'}
@@ -512,23 +644,31 @@ export default function App() {
                   onClick={() => toggleFlowItem(dayTab, item.id)}
                   className={`p-4 rounded-2xl backdrop-blur-xl border transition-all cursor-pointer flex items-start gap-3.5 ${
                     item.done
-                      ? 'bg-emerald-500/15 border-emerald-400/30 opacity-75'
-                      : 'bg-white/10 border-white/15 hover:bg-white/15'
+                      ? isDark
+                        ? 'bg-emerald-500/15 border-emerald-400/30 opacity-75'
+                        : 'bg-emerald-50/90 border-emerald-300/80 opacity-80'
+                      : isDark
+                        ? 'bg-white/10 border-white/15 hover:bg-white/15'
+                        : 'bg-white/75 border-slate-200/90 hover:bg-white shadow-sm'
                   }`}
                 >
                   <div className="mt-0.5">
                     {item.done ? (
-                      <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+                      <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0" />
                     ) : (
-                      <Circle className="w-5 h-5 text-white/40 shrink-0" />
+                      <Circle className={`w-5 h-5 shrink-0 ${isDark ? 'text-white/40' : 'text-slate-400'}`} />
                     )}
                   </div>
                   <div className="flex-1">
-                    <span className="text-[11px] font-semibold text-sky-300">{item.time}</span>
-                    <h3 className={`text-sm font-bold ${item.done ? 'line-through text-white/60' : 'text-white'}`}>
+                    <span className={`text-[11px] font-semibold ${accentText}`}>{item.time}</span>
+                    <h3
+                      className={`text-sm font-bold ${
+                        item.done ? `line-through ${textSoft}` : ''
+                      }`}
+                    >
                       {item.title}
                     </h3>
-                    <p className="text-xs text-white/65 mt-0.5">{item.desc}</p>
+                    <p className={`text-xs mt-0.5 ${textMuted}`}>{item.desc}</p>
                   </div>
                 </div>
               ))}
@@ -536,6 +676,7 @@ export default function App() {
           </motion.section>
         )}
 
+        {/* TAB 2: BARANG (ACCORDION) */}
         {mainTab === 'prep' && (
           <motion.section initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="space-y-3.5">
             <form onSubmit={addCustomPrep} className="flex gap-2 mb-4">
@@ -544,11 +685,15 @@ export default function App() {
                 value={newItemText}
                 onChange={(e) => setNewItemText(e.target.value)}
                 placeholder="Tambah barang lain..."
-                className="flex-1 bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl px-4 py-3 text-xs text-white placeholder:text-white/45 focus:outline-none focus:border-sky-400"
+                className={`flex-1 backdrop-blur-xl border rounded-2xl px-4 py-3 text-xs focus:outline-none focus:border-sky-400 ${
+                  isDark
+                    ? 'bg-white/10 border-white/20 text-white placeholder:text-white/45'
+                    : 'bg-white/80 border-slate-200 text-slate-900 placeholder:text-slate-400 shadow-sm'
+                }`}
               />
               <button
                 type="submit"
-                className="bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold px-4 rounded-2xl flex items-center justify-center cursor-pointer"
+                className="bg-sky-500 hover:bg-sky-400 text-white font-bold px-4 rounded-2xl flex items-center justify-center cursor-pointer shadow-sm"
               >
                 <Plus className="w-4 h-4" />
               </button>
@@ -565,30 +710,36 @@ export default function App() {
               return (
                 <div
                   key={category}
-                  className="bg-white/10 backdrop-blur-2xl border border-white/15 rounded-3xl overflow-hidden transition-all"
+                  className={`backdrop-blur-2xl border rounded-3xl overflow-hidden transition-all ${subGlass}`}
                 >
                   <button
                     type="button"
                     onClick={() => toggleCategory(category)}
-                    className="w-full px-5 py-4 flex items-center justify-between text-left hover:bg-white/5 transition-colors cursor-pointer"
+                    className={`w-full px-5 py-4 flex items-center justify-between text-left transition-colors cursor-pointer ${
+                      isDark ? 'hover:bg-white/5' : 'hover:bg-white/60'
+                    }`}
                   >
                     <div className="flex items-center gap-2.5">
-                      <span className="text-xs font-bold uppercase tracking-wider text-sky-300">
+                      <span className={`text-xs font-bold uppercase tracking-wider ${accentText}`}>
                         {category}
                       </span>
                       <span
                         className={`text-[11px] font-semibold px-2 py-0.5 rounded-full border ${
                           allDone
-                            ? 'bg-emerald-500/20 text-emerald-300 border-emerald-400/30'
-                            : 'bg-black/30 text-white/70 border-white/10'
+                            ? isDark
+                              ? 'bg-emerald-500/20 text-emerald-300 border-emerald-400/30'
+                              : 'bg-emerald-100 text-emerald-700 border-emerald-300'
+                            : isDark
+                              ? 'bg-black/30 text-white/70 border-white/10'
+                              : 'bg-slate-100 text-slate-600 border-slate-200'
                         }`}
                       >
                         {doneCount}/{items.length}
                       </span>
                     </div>
                     <ChevronDown
-                      className={`w-4 h-4 text-white/70 transition-transform duration-300 ${
-                        isOpen ? 'rotate-180 text-sky-300' : ''
+                      className={`w-4 h-4 transition-transform duration-300 ${
+                        isOpen ? `rotate-180 ${accentText}` : textSoft
                       }`}
                     />
                   </button>
@@ -602,24 +753,40 @@ export default function App() {
                         transition={{ duration: 0.25, ease: 'easeInOut' }}
                         className="overflow-hidden"
                       >
-                        <div className="px-4 pb-4 pt-1 space-y-2 border-t border-white/10">
+                        <div
+                          className={`px-4 pb-4 pt-2 space-y-2 border-t ${
+                            isDark ? 'border-white/10' : 'border-slate-200/70'
+                          }`}
+                        >
                           {items.map((item) => (
                             <div
                               key={item.id}
                               onClick={() => togglePrepItem(item.id)}
                               className={`p-3 rounded-2xl border flex items-center justify-between gap-3 cursor-pointer transition-all ${
                                 item.done
-                                  ? 'bg-emerald-500/15 border-emerald-400/30 opacity-75'
-                                  : 'bg-black/25 border-white/10 hover:bg-black/35'
+                                  ? isDark
+                                    ? 'bg-emerald-500/15 border-emerald-400/30 opacity-75'
+                                    : 'bg-emerald-50 border-emerald-300/80 opacity-80'
+                                  : isDark
+                                    ? 'bg-black/25 border-white/10 hover:bg-black/35'
+                                    : 'bg-white/85 border-slate-200/80 hover:bg-white'
                               }`}
                             >
                               <div className="flex items-center gap-3">
                                 {item.done ? (
-                                  <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+                                  <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0" />
                                 ) : (
-                                  <Circle className="w-5 h-5 text-white/40 shrink-0" />
+                                  <Circle
+                                    className={`w-5 h-5 shrink-0 ${
+                                      isDark ? 'text-white/40' : 'text-slate-400'
+                                    }`}
+                                  />
                                 )}
-                                <span className={`text-xs font-medium ${item.done ? 'line-through text-white/55' : 'text-white'}`}>
+                                <span
+                                  className={`text-xs font-medium ${
+                                    item.done ? `line-through ${textSoft}` : ''
+                                  }`}
+                                >
                                   {item.text}
                                 </span>
                               </div>
@@ -630,7 +797,7 @@ export default function App() {
                                     e.stopPropagation();
                                     deleteCustomPrep(item.id);
                                   }}
-                                  className="text-white/40 hover:text-rose-400 p-1 cursor-pointer"
+                                  className={`${textSoft} hover:text-rose-500 p-1 cursor-pointer`}
                                 >
                                   <Trash2 className="w-4 h-4" />
                                 </button>
@@ -647,26 +814,37 @@ export default function App() {
           </motion.section>
         )}
 
+        {/* TAB 3: WAZE & LOKASI */}
         {mainTab === 'nav' && (
           <motion.section initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="space-y-3.5">
-            <div className="bg-sky-500/15 backdrop-blur-xl border border-sky-400/30 rounded-2xl p-4 flex gap-3 items-start">
-              <Info className="w-5 h-5 text-sky-300 shrink-0 mt-0.5" />
-              <div className="text-xs text-white/85 leading-relaxed">
-                <p className="font-bold text-white mb-1">Nota Penting Check-In Hotel:</p>
+            <div
+              className={`backdrop-blur-xl border rounded-2xl p-4 flex gap-3 items-start ${
+                isDark
+                  ? 'bg-sky-500/15 border-sky-400/30 text-white/85'
+                  : 'bg-sky-100/80 border-sky-300 text-slate-800'
+              }`}
+            >
+              <Info className={`w-5 h-5 shrink-0 mt-0.5 ${accentText}`} />
+              <div className="text-xs leading-relaxed">
+                <p className="font-bold mb-1">Nota Penting Check-In Hotel:</p>
                 Jangan taip Highland Breeze dekat Waze! Guna butang <strong>Grand Ion Delemen</strong> kat bawah ni. Parkir kereta dekat <strong>Level 4</strong>, lepas tu naik lif ke <strong>Level 7</strong> untuk ambil kunci dan validate kad Touch n Go.
               </div>
             </div>
 
             {LOCATIONS.map((loc) => (
-              <div key={loc.name} className="bg-white/10 backdrop-blur-2xl border border-white/15 rounded-3xl p-4">
-                <h3 className="text-sm font-bold text-white">{loc.name}</h3>
-                <p className="text-xs text-white/65 mt-1 mb-3.5 leading-relaxed">{loc.note}</p>
+              <div key={loc.name} className={`backdrop-blur-2xl border rounded-3xl p-4 ${subGlass}`}>
+                <h3 className="text-sm font-bold">{loc.name}</h3>
+                <p className={`text-xs mt-1 mb-3.5 leading-relaxed ${textMuted}`}>{loc.note}</p>
                 <div className="grid grid-cols-2 gap-2">
                   <a
                     href={loc.waze}
                     target="_blank"
                     rel="noreferrer"
-                    className="py-2.5 px-3 rounded-xl bg-sky-500/25 hover:bg-sky-500/35 border border-sky-400/40 text-xs font-semibold text-sky-200 flex items-center justify-center gap-1.5 transition-all"
+                    className={`py-2.5 px-3 rounded-xl border text-xs font-semibold flex items-center justify-center gap-1.5 transition-all ${
+                      isDark
+                        ? 'bg-sky-500/25 hover:bg-sky-500/35 border-sky-400/40 text-sky-200'
+                        : 'bg-sky-500 hover:bg-sky-600 border-sky-500 text-white shadow-sm'
+                    }`}
                   >
                     <Navigation className="w-3.5 h-3.5" /> Buka Waze
                   </a>
@@ -674,7 +852,11 @@ export default function App() {
                     href={loc.maps}
                     target="_blank"
                     rel="noreferrer"
-                    className="py-2.5 px-3 rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 text-xs font-semibold text-white/90 flex items-center justify-center gap-1.5 transition-all"
+                    className={`py-2.5 px-3 rounded-xl border text-xs font-semibold flex items-center justify-center gap-1.5 transition-all ${
+                      isDark
+                        ? 'bg-white/10 hover:bg-white/20 border-white/15 text-white/90'
+                        : 'bg-white hover:bg-slate-50 border-slate-200 text-slate-800 shadow-sm'
+                    }`}
                   >
                     <ExternalLink className="w-3.5 h-3.5" /> Google Maps
                   </a>
