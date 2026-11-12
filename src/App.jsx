@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import confetti from 'canvas-confetti';
 import {
   Lock, Sparkles, Music, VolumeX, Calendar, Briefcase, Navigation,
-  CheckCircle2, Circle, Plus, MapPin, CloudFog, RefreshCw, Trash2, ExternalLink, Info
+  CheckCircle2, Circle, Plus, MapPin, CloudFog, RefreshCw, Trash2, ExternalLink, Info, ChevronDown
 } from 'lucide-react';
 
 const INITIAL_DATA = {
@@ -78,8 +78,21 @@ export default function App() {
   const [newItemText, setNewItemText] = useState('');
   const [countdown, setCountdown] = useState({ d: '00', h: '00', m: '00', s: '00' });
 
+  // Status buka/tutup (FAQ Accordion) untuk setiap kategori Barang
+  // Secara lalai semua tertutup (false) supaya nampak kemas ala-ala FAQ, tekan baru buka!
+  const [openCats, setOpenCats] = useState({
+    'SkyWorlds': false,
+    'Dokumen & Duit': false,
+    'Bilik & Malam': false,
+    'Tambahan Kita': false
+  });
+
   const audioRef = useRef(null);
   const lastSaveRef = useRef(0);
+
+  const toggleCategory = (cat) => {
+    setOpenCats((prev) => ({ ...prev, [cat]: !prev[cat] }));
+  };
 
   useEffect(() => {
     const target = new Date('2026-11-14T07:30:00+08:00').getTime();
@@ -230,6 +243,8 @@ export default function App() {
     };
     saveState({ ...stateData, prep: [...stateData.prep, newItem] });
     setNewItemText('');
+    // Automatik buka accordion 'Tambahan Kita' bila barang baru ditambah
+    setOpenCats((prev) => ({ ...prev, 'Tambahan Kita': true }));
   };
 
   const deleteCustomPrep = (id) => {
@@ -452,8 +467,8 @@ export default function App() {
         )}
 
         {mainTab === 'prep' && (
-          <motion.section initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
-            <form onSubmit={addCustomPrep} className="flex gap-2">
+          <motion.section initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="space-y-3.5">
+            <form onSubmit={addCustomPrep} className="flex gap-2 mb-4">
               <input
                 type="text"
                 value={newItemText}
@@ -472,46 +487,92 @@ export default function App() {
             {['SkyWorlds', 'Dokumen & Duit', 'Bilik & Malam', 'Tambahan Kita'].map((category) => {
               const items = stateData.prep.filter((i) => i.cat === category);
               if (items.length === 0) return null;
+
+              const doneCount = items.filter((i) => i.done).length;
+              const allDone = doneCount === items.length;
+              const isOpen = !!openCats[category];
+
               return (
-                <div key={category} className="bg-white/10 backdrop-blur-2xl border border-white/15 rounded-3xl p-4">
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-sky-300 mb-3 px-1">
-                    {category}
-                  </h3>
-                  <div className="space-y-2">
-                    {items.map((item) => (
-                      <div
-                        key={item.id}
-                        onClick={() => togglePrepItem(item.id)}
-                        className={`p-3 rounded-2xl border flex items-center justify-between gap-3 cursor-pointer transition-all ${
-                          item.done
-                            ? 'bg-emerald-500/15 border-emerald-400/30 opacity-75'
-                            : 'bg-black/25 border-white/10 hover:bg-black/35'
+                <div
+                  key={category}
+                  className="bg-white/10 backdrop-blur-2xl border border-white/15 rounded-3xl overflow-hidden transition-all"
+                >
+                  {/* Header Accordion ala-ala FAQ (Klik untuk Buka / Tutup) */}
+                  <button
+                    type="button"
+                    onClick={() => toggleCategory(category)}
+                    className="w-full px-5 py-4 flex items-center justify-between text-left hover:bg-white/5 transition-colors cursor-pointer"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <span className="text-xs font-bold uppercase tracking-wider text-sky-300">
+                        {category}
+                      </span>
+                      <span
+                        className={`text-[11px] font-semibold px-2 py-0.5 rounded-full border ${
+                          allDone
+                            ? 'bg-emerald-500/20 text-emerald-300 border-emerald-400/30'
+                            : 'bg-black/30 text-white/70 border-white/10'
                         }`}
                       >
-                        <div className="flex items-center gap-3">
-                          {item.done ? (
-                            <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
-                          ) : (
-                            <Circle className="w-5 h-5 text-white/40 shrink-0" />
-                          )}
-                          <span className={`text-xs font-medium ${item.done ? 'line-through text-white/55' : 'text-white'}`}>
-                            {item.text}
-                          </span>
+                        {doneCount}/{items.length}
+                      </span>
+                    </div>
+                    <ChevronDown
+                      className={`w-4 h-4 text-white/70 transition-transform duration-300 ${
+                        isOpen ? 'rotate-180 text-sky-300' : ''
+                      }`}
+                    />
+                  </button>
+
+                  {/* Senarai Barang (Expand / Collapse secara smooth) */}
+                  <AnimatePresence initial={false}>
+                    {isOpen && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.25, ease: 'easeInOut' }}
+                        className="overflow-hidden"
+                      >
+                        <div className="px-4 pb-4 pt-1 space-y-2 border-t border-white/10">
+                          {items.map((item) => (
+                            <div
+                              key={item.id}
+                              onClick={() => togglePrepItem(item.id)}
+                              className={`p-3 rounded-2xl border flex items-center justify-between gap-3 cursor-pointer transition-all ${
+                                item.done
+                                  ? 'bg-emerald-500/15 border-emerald-400/30 opacity-75'
+                                  : 'bg-black/25 border-white/10 hover:bg-black/35'
+                              }`}
+                            >
+                              <div className="flex items-center gap-3">
+                                {item.done ? (
+                                  <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+                                ) : (
+                                  <Circle className="w-5 h-5 text-white/40 shrink-0" />
+                                )}
+                                <span className={`text-xs font-medium ${item.done ? 'line-through text-white/55' : 'text-white'}`}>
+                                  {item.text}
+                                </span>
+                              </div>
+                              {item.id.startsWith('custom_') && (
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    deleteCustomPrep(item.id);
+                                  }}
+                                  className="text-white/40 hover:text-rose-400 p-1 cursor-pointer"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              )}
+                            </div>
+                          ))}
                         </div>
-                        {item.id.startsWith('custom_') && (
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              deleteCustomPrep(item.id);
-                            }}
-                            className="text-white/40 hover:text-rose-400 p-1"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        )}
-                      </div>
-                    ))}
-                  </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
               );
             })}
