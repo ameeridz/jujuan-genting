@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import confetti from 'canvas-confetti';
 import {
-  Lock, Sparkles, Music, VolumeX, Calendar, Briefcase,
-  CheckCircle2, Circle, Plus, MapPin, CloudFog, RefreshCw, Trash2
+  Lock, Sparkles, Music, VolumeX, Calendar, Briefcase, Navigation,
+  CheckCircle2, Circle, Plus, MapPin, CloudFog, RefreshCw, Trash2, ExternalLink, Info
 } from 'lucide-react';
 
 const INITIAL_DATA = {
@@ -39,17 +39,49 @@ const INITIAL_DATA = {
   ]
 };
 
+const LOCATIONS = [
+  {
+    name: 'Awana SkyCentral (Parkir & Cable Car)',
+    note: 'Tempat parkir jimat pertengahan bukit untuk naik kereta kabel Awana SkyWay terus ke SkyAvenue.',
+    waze: 'https://waze.com/ul?q=Awana%20SkyCentral%20Genting&navigate=yes',
+    maps: 'https://www.google.com/maps/search/?api=1&query=Awana+SkyCentral+Genting+Highlands'
+  },
+  {
+    name: 'Genting SkyWorlds & SkyAvenue',
+    note: 'Taman tema buka 10:00 AM hingga 6:00 PM. Jangan lupa beli bekalan malam dekat 7E/FamilyMart sebelum naik hotel.',
+    waze: 'https://waze.com/ul?q=Genting%20SkyWorlds%20Theme%20Park&navigate=yes',
+    maps: 'https://www.google.com/maps/search/?api=1&query=Genting+SkyWorlds+Theme+Park'
+  },
+  {
+    name: 'Grand Ion Delemen (Highland Breeze)',
+    note: 'Masuk parkir sebelah MyNews naik ke Level 4. Kaunter Highland Breeze buka 24 jam dekat Level 7 (sediakan tunai RM200).',
+    waze: 'https://waze.com/ul?q=Grand%20Ion%20Delemen%20Hotel&navigate=yes',
+    maps: 'https://www.google.com/maps/search/?api=1&query=Grand+Ion+Delemen+Hotel+Genting'
+  },
+  {
+    name: 'Genting Highlands Premium Outlets (GHPO)',
+    note: 'Lokasi jalan santai, minum petang dan cuci mata hari Ahad sebelum bertolak balik.',
+    waze: 'https://waze.com/ul?q=Genting%20Highlands%20Premium%20Outlets&navigate=yes',
+    maps: 'https://www.google.com/maps/search/?api=1&query=Genting+Highlands+Premium+Outlets'
+  }
+];
+
 export default function App() {
   const [unlocked, setUnlocked] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [bgmMissing, setBgmMissing] = useState(false);
   const [mainTab, setMainTab] = useState('flow');
   const [dayTab, setDayTab] = useState('sabtu');
   const [stateData, setStateData] = useState(INITIAL_DATA);
   const [syncing, setSyncing] = useState(false);
+  const [isLive, setIsLive] = useState(false);
   const [newItemText, setNewItemText] = useState('');
   const [countdown, setCountdown] = useState({ d: '00', h: '00', m: '00', s: '00' });
-  const audioRef = useRef(null);
 
+  const audioRef = useRef(null);
+  const lastSaveRef = useRef(0);
+
+  // Kiraan detik ke Sabtu 14 Nov 2026, 7:30 Pagi
   useEffect(() => {
     const target = new Date('2026-11-14T07:30:00+08:00').getTime();
     const timer = setInterval(() => {
@@ -69,42 +101,72 @@ export default function App() {
     return () => clearInterval(timer);
   }, []);
 
-  const fetchLatestState = async () => {
-    setSyncing(true);
+  // Fungsi tarik data terkini (menyokong mod senyap untuk auto-sync)
+  const fetchLatestState = useCallback(async (silent = false) => {
+    // Elak auto-sync tindih data kalau pengguna baru sahaja klik dalam masa 3 saat
+    if (silent && Date.now() - lastSaveRef.current < 3000) return;
+
+    if (!silent) setSyncing(true);
     try {
-      const res = await fetch('/api/state');
+      const res = await fetch('/api/state', { cache: 'no-store' });
       if (res.ok) {
         const cloudData = await res.json();
+        setIsLive(true);
         if (cloudData && cloudData.flow && cloudData.prep) {
           setStateData(cloudData);
           localStorage.setItem('jujuan_genting', JSON.stringify(cloudData));
-          setSyncing(false);
+          if (!silent) setSyncing(false);
           return;
         }
       }
     } catch {
-      // Fallback ke localStorage semasa pembangunan lokal
+      setIsLive(false);
     }
-    const saved = localStorage.getItem('jujuan_genting');
-    if (saved) setStateData(JSON.parse(saved));
-    setSyncing(false);
-  };
 
-  useEffect(() => {
-    fetchLatestState();
+    if (!silent) {
+      const saved = localStorage.getItem('jujuan_genting');
+      if (saved) setStateData(JSON.parse(saved));
+      setSyncing(false);
+    }
   }, []);
 
+  // Auto-Sync setiap 5 saat & setiap kali buka semula skrin telefon
+  useEffect(() => {
+    fetchLatestState(false);
+
+    const interval = setInterval(() => {
+      if (document.visibilityState === 'visible') {
+        fetchLatestState(true);
+      }
+    }, 5000);
+
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') fetchLatestState(true);
+    };
+
+    document.addEventListener('visibilitychange', handleVisibility);
+    window.addEventListener('focus', handleVisibility);
+
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener('visibilitychange', handleVisibility);
+      window.removeEventListener('focus', handleVisibility);
+    };
+  }, [fetchLatestState]);
+
   const saveState = async (updated) => {
+    lastSaveRef.current = Date.now();
     setStateData(updated);
     localStorage.setItem('jujuan_genting', JSON.stringify(updated));
     try {
-      await fetch('/api/state', {
+      const res = await fetch('/api/state', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updated)
       });
+      if (res.ok) setIsLive(true);
     } catch {
-      // Abaikan jika backend belum disambung
+      setIsLive(false);
     }
   };
 
@@ -112,9 +174,15 @@ export default function App() {
     setUnlocked(true);
     if (audioRef.current) {
       audioRef.current.volume = 0.5;
-      audioRef.current.play().then(() => setIsPlaying(true)).catch(() => { });
+      audioRef.current
+        .play()
+        .then(() => {
+          setIsPlaying(true);
+          setBgmMissing(false);
+        })
+        .catch(() => setIsPlaying(false));
     }
-    confetti({ particleCount: 50, spread: 60, origin: { y: 0.7 } });
+    confetti({ particleCount: 55, spread: 65, origin: { y: 0.7 } });
   };
 
   const toggleMusic = () => {
@@ -123,8 +191,13 @@ export default function App() {
       audioRef.current.pause();
       setIsPlaying(false);
     } else {
-      audioRef.current.play().catch(() => { });
-      setIsPlaying(true);
+      audioRef.current
+        .play()
+        .then(() => {
+          setIsPlaying(true);
+          setBgmMissing(false);
+        })
+        .catch(() => setBgmMissing(true));
     }
   };
 
@@ -173,20 +246,28 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-slate-950 text-white font-sans relative overflow-x-hidden selection:bg-sky-400/30">
+      {/* Latar Belakang Mesh Gradient iOS */}
       <div className="fixed inset-0 pointer-events-none z-0">
         <div className="absolute -top-24 -left-24 w-80 h-80 bg-sky-500/30 rounded-full blur-3xl animate-pulse" />
         <div className="absolute top-1/3 -right-24 w-96 h-96 bg-indigo-500/25 rounded-full blur-3xl" />
         <div className="absolute bottom-0 left-1/4 w-80 h-80 bg-pink-500/20 rounded-full blur-3xl" />
       </div>
 
-      <audio ref={audioRef} src="/bgm.mp3" loop preload="auto" />
+      <audio
+        ref={audioRef}
+        src="/bgm.m4a"
+        loop
+        preload="auto"
+        onError={() => setBgmMissing(true)}
+      />
 
+      {/* ================= SKRIN KUNCI iOS ================= */}
       <AnimatePresence>
         {!unlocked && (
           <motion.div
             exit={{ y: '-100%', opacity: 0 }}
             transition={{ duration: 0.65, ease: 'easeInOut' }}
-            className="fixed inset-0 z-50 flex flex-col justify-between items-center p-6 bg-slate-950/70 backdrop-blur-2xl"
+            className="fixed inset-0 z-50 flex flex-col justify-between items-center p-6 bg-slate-950/75 backdrop-blur-2xl"
           >
             <div className="mt-14 text-center">
               <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 border border-white/15 text-xs text-sky-200 mb-4">
@@ -207,7 +288,7 @@ export default function App() {
               </div>
               <h2 className="text-xl font-bold text-white">Jujuan Go Genting 🎢🌫️</h2>
               <p className="text-xs text-white/75 mt-1 leading-relaxed">
-                Kad tentatif dan senarai persediaan rasmi kita dah siap. Tekan di bawah untuk semak barang dan jadual perjalanan!
+                Kad tentatif, lokasi Waze dan senarai persediaan rasmi kita dah siap. Tekan di bawah untuk mula semak!
               </p>
             </div>
 
@@ -222,9 +303,11 @@ export default function App() {
         )}
       </AnimatePresence>
 
+      {/* ================= KANDUNGAN UTAMA ================= */}
       <main className="relative z-10 max-w-md mx-auto px-4 pt-4 pb-20">
-        <div className="sticky top-3 z-30 flex justify-center mb-6">
-          <div className="bg-black/65 backdrop-blur-2xl border border-white/15 rounded-full px-4 py-2 flex items-center gap-4 shadow-lg">
+        {/* Dynamic Island Bar (Music + Auto-Sync Indicator) */}
+        <div className="sticky top-3 z-30 flex flex-col items-center mb-6">
+          <div className="bg-black/70 backdrop-blur-2xl border border-white/15 rounded-full px-4 py-2 flex items-center gap-3.5 shadow-lg">
             <button onClick={toggleMusic} className="flex items-center gap-2 text-xs font-medium text-white/90 cursor-pointer">
               {isPlaying ? (
                 <Music className="w-3.5 h-3.5 text-sky-400 animate-bounce" />
@@ -234,13 +317,23 @@ export default function App() {
               <span>{isPlaying ? 'BGM Playing' : 'Play BGM'}</span>
             </button>
             <div className="w-px h-3.5 bg-white/20" />
-            <button onClick={fetchLatestState} className="flex items-center gap-1.5 text-xs text-sky-300 cursor-pointer">
-              <RefreshCw className={`w-3.5 h-3.5 ${syncing ? 'animate-spin' : ''}`} />
-              <span>Sync</span>
+            <button
+              onClick={() => fetchLatestState(false)}
+              className="flex items-center gap-1.5 text-xs text-sky-300 cursor-pointer"
+            >
+              <span className={`w-2 h-2 rounded-full ${isLive ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'}`} />
+              <RefreshCw className={`w-3 h-3 ${syncing ? 'animate-spin' : ''}`} />
+              <span>{isLive ? 'Auto-Sync' : 'Local'}</span>
             </button>
           </div>
+          {bgmMissing && (
+            <span className="mt-1.5 text-[10px] text-amber-300 bg-black/60 px-2.5 py-0.5 rounded-full">
+              Letak fail public/bgm.mp3 untuk hidupkan lagu
+            </span>
+          )}
         </div>
 
+        {/* Kad Utama Tajuk & Countdown */}
         <section className="bg-white/10 backdrop-blur-2xl border border-white/20 rounded-3xl p-6 mb-5 shadow-xl">
           <div className="flex items-center justify-between mb-2">
             <span className="text-[11px] font-semibold uppercase tracking-wider text-sky-300">
@@ -291,23 +384,35 @@ export default function App() {
           </div>
         </section>
 
-        <div className="grid grid-cols-2 gap-1.5 bg-white/10 backdrop-blur-xl p-1.5 rounded-2xl border border-white/15 mb-5">
+        {/* Segmented Control 3 Tab Gaya iOS */}
+        <div className="grid grid-cols-3 gap-1 bg-white/10 backdrop-blur-xl p-1.5 rounded-2xl border border-white/15 mb-5">
           <button
             onClick={() => setMainTab('flow')}
-            className={`py-2.5 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${mainTab === 'flow' ? 'bg-white text-slate-950 shadow-md' : 'text-white/75'
-              }`}
+            className={`py-2.5 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+              mainTab === 'flow' ? 'bg-white text-slate-950 shadow-md' : 'text-white/75'
+            }`}
           >
-            <Calendar className="w-4 h-4" /> Tentative Flow
+            <Calendar className="w-3.5 h-3.5" /> Jadual
           </button>
           <button
             onClick={() => setMainTab('prep')}
-            className={`py-2.5 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${mainTab === 'prep' ? 'bg-white text-slate-950 shadow-md' : 'text-white/75'
-              }`}
+            className={`py-2.5 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+              mainTab === 'prep' ? 'bg-white text-slate-950 shadow-md' : 'text-white/75'
+            }`}
           >
-            <Briefcase className="w-4 h-4" /> Prep Checklist
+            <Briefcase className="w-3.5 h-3.5" /> Barang
+          </button>
+          <button
+            onClick={() => setMainTab('nav')}
+            className={`py-2.5 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+              mainTab === 'nav' ? 'bg-white text-slate-950 shadow-md' : 'text-white/75'
+            }`}
+          >
+            <Navigation className="w-3.5 h-3.5" /> Waze
           </button>
         </div>
 
+        {/* ================= TAB 1: JADUAL PERJALANAN ================= */}
         {mainTab === 'flow' && (
           <motion.section initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
             <div className="flex gap-2 mb-4">
@@ -315,10 +420,11 @@ export default function App() {
                 <button
                   key={d}
                   onClick={() => setDayTab(d)}
-                  className={`flex-1 py-2 rounded-xl text-xs font-semibold capitalize border transition-all cursor-pointer ${dayTab === d
-                    ? 'bg-sky-400/25 border-sky-300/50 text-white'
-                    : 'bg-white/5 border-white/10 text-white/60'
-                    }`}
+                  className={`flex-1 py-2 rounded-xl text-xs font-semibold capitalize border transition-all cursor-pointer ${
+                    dayTab === d
+                      ? 'bg-sky-400/25 border-sky-300/50 text-white'
+                      : 'bg-white/5 border-white/10 text-white/60'
+                  }`}
                 >
                   {d === 'sabtu' ? 'Sabtu (14 Nov)' : 'Ahad (15 Nov)'}
                 </button>
@@ -330,10 +436,11 @@ export default function App() {
                 <div
                   key={item.id}
                   onClick={() => toggleFlowItem(dayTab, item.id)}
-                  className={`p-4 rounded-2xl backdrop-blur-xl border transition-all cursor-pointer flex items-start gap-3.5 ${item.done
-                    ? 'bg-emerald-500/15 border-emerald-400/30 opacity-75'
-                    : 'bg-white/10 border-white/15 hover:bg-white/15'
-                    }`}
+                  className={`p-4 rounded-2xl backdrop-blur-xl border transition-all cursor-pointer flex items-start gap-3.5 ${
+                    item.done
+                      ? 'bg-emerald-500/15 border-emerald-400/30 opacity-75'
+                      : 'bg-white/10 border-white/15 hover:bg-white/15'
+                  }`}
                 >
                   <div className="mt-0.5">
                     {item.done ? (
@@ -355,6 +462,7 @@ export default function App() {
           </motion.section>
         )}
 
+        {/* ================= TAB 2: SENARAI BARANG ================= */}
         {mainTab === 'prep' && (
           <motion.section initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
             <form onSubmit={addCustomPrep} className="flex gap-2">
@@ -386,10 +494,11 @@ export default function App() {
                       <div
                         key={item.id}
                         onClick={() => togglePrepItem(item.id)}
-                        className={`p-3 rounded-2xl border flex items-center justify-between gap-3 cursor-pointer transition-all ${item.done
-                          ? 'bg-emerald-500/15 border-emerald-400/30 opacity-75'
-                          : 'bg-black/25 border-white/10 hover:bg-black/35'
-                          }`}
+                        className={`p-3 rounded-2xl border flex items-center justify-between gap-3 cursor-pointer transition-all ${
+                          item.done
+                            ? 'bg-emerald-500/15 border-emerald-400/30 opacity-75'
+                            : 'bg-black/25 border-white/10 hover:bg-black/35'
+                        }`}
                       >
                         <div className="flex items-center gap-3">
                           {item.done ? (
@@ -418,6 +527,44 @@ export default function App() {
                 </div>
               );
             })}
+          </motion.section>
+        )}
+
+        {/* ================= TAB 3: PINTASAN WAZE & NOTA PENTING ================= */}
+        {mainTab === 'nav' && (
+          <motion.section initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="space-y-3.5">
+            <div className="bg-sky-500/15 backdrop-blur-xl border border-sky-400/30 rounded-2xl p-4 flex gap-3 items-start">
+              <Info className="w-5 h-5 text-sky-300 shrink-0 mt-0.5" />
+              <div className="text-xs text-white/85 leading-relaxed">
+                <p className="font-bold text-white mb-1">Nota Penting Check-In Hotel:</p>
+                Jangan taip Highland Breeze dekat Waze! Guna butang <strong>Grand Ion Delemen</strong> kat bawah ni. Parkir kereta dekat <strong>Level 4</strong>, lepas tu naik lif ke <strong>Level 7</strong> untuk ambil kunci dan validate kad Touch n Go.
+              </div>
+            </div>
+
+            {LOCATIONS.map((loc) => (
+              <div key={loc.name} className="bg-white/10 backdrop-blur-2xl border border-white/15 rounded-3xl p-4">
+                <h3 className="text-sm font-bold text-white">{loc.name}</h3>
+                <p className="text-xs text-white/65 mt-1 mb-3.5 leading-relaxed">{loc.note}</p>
+                <div className="grid grid-cols-2 gap-2">
+                  <a
+                    href={loc.waze}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="py-2.5 px-3 rounded-xl bg-sky-500/25 hover:bg-sky-500/35 border border-sky-400/40 text-xs font-semibold text-sky-200 flex items-center justify-center gap-1.5 transition-all"
+                  >
+                    <Navigation className="w-3.5 h-3.5" /> Buka Waze
+                  </a>
+                  <a
+                    href={loc.maps}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="py-2.5 px-3 rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 text-xs font-semibold text-white/90 flex items-center justify-center gap-1.5 transition-all"
+                  >
+                    <ExternalLink className="w-3.5 h-3.5" /> Google Maps
+                  </a>
+                </div>
+              </div>
+            ))}
           </motion.section>
         )}
       </main>
