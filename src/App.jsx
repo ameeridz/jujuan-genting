@@ -7,11 +7,12 @@ import {
 } from 'lucide-react';
 
 const INITIAL_DATA = {
+  activePlan: 'A',
   flow: {
     sabtu: [
       { id: 'f1', time: '07:30 AM', title: 'Gerak & Sarapan Berat', desc: 'Isi perut siap-siap dekat bawah sebelum naik bukit', done: false },
       { id: 'f2', time: '09:15 AM', title: 'Parkir Kereta & Naik Puncak', desc: 'Parkir dekat Awana SkyCentral (naik cable car) atau SkyAvenue', done: false },
-      { id: 'f3', time: '10:00 AM', title: 'Genting SkyWorlds Adventure', desc: 'Tebus QR, tempah slot VQ dalam app dan main semua ride!', done: false },
+      { id: 'f3', time: '10:00 AM', title: 'Genting SkyWorlds Adventure', desc: 'Masuk ikut SkyAvenue Gateway (Aras G), link QR untuk VQ & main semua ride!', done: false },
       { id: 'f4', time: '06:00 PM', title: 'Dinner Date @ SkyAvenue', desc: 'Makan malam sedap lepas penat pusing taman tema', done: false },
       { id: 'f5', time: '07:30 PM', title: 'Beli Bekalan Malam (7E / FamilyMart)', desc: 'Air mineral besar, jajan dan kopi panas untuk bilik', done: false },
       { id: 'f6', time: '08:15 PM', title: 'Check-In Highland Breeze (Level 7)', desc: 'Parkir Level 4 Ion Delemen, naik Level 7 bawa cash RM200', done: false },
@@ -25,6 +26,24 @@ const INITIAL_DATA = {
       { id: 'f12', time: '04:30 PM', title: 'Gerak Balik Dengan Selamat', desc: 'Tamat short getaway Jujuan Go Genting!', done: false }
     ]
   },
+  flowB: {
+    sabtu: [
+      { id: 'fb1', time: '10:00 AM', title: 'Bertolak Santai Dari Rumah', desc: 'Tak payah kalut bangun awal pagi, gerak tenang naik bukit', done: false },
+      { id: 'fb2', time: '11:30 AM', title: 'Lunch @ Gohtong & Jalan GHPO', desc: 'Makan tengah hari sedap dan cuci mata dekat Premium Outlets dulu', done: false },
+      { id: 'fb3', time: '02:00 PM', title: 'Naik Puncak & Beli Bekalan (7E)', desc: 'Beli siap-siap air mineral, kopi panas dan kudapan malam', done: false },
+      { id: 'fb4', time: '03:00 PM', title: 'Check-In Awal Highland Breeze (Level 7)', desc: 'Parkir Level 4 Ion Delemen, daftar masuk awal bawa tunai RM200', done: false },
+      { id: 'fb5', time: '03:30 PM', title: 'Rehat Bilik & Quality Time Segar', desc: 'Lepak balkoni berkabus, mandi air panas dan rehat berdua tanpa penat', done: false },
+      { id: 'fb6', time: '07:30 PM', title: 'Dinner Date @ SkyAvenue', desc: 'Turun makan malam romantik dekat mall lepas tu balik bilik', done: false },
+      { id: 'fb7', time: '09:30 PM', title: 'Malam Santai Suhu 15°C', desc: 'Layan suasana sejuk gunung dan tidur awal kumpul tenaga untuk esok!', done: false }
+    ],
+    ahad: [
+      { id: 'fb8', time: '08:00 AM', title: 'Bangun Pagi, Kopi & Kemas Beg', desc: 'Layan kabus pagi kejap dekat balkoni dan siap kemas semua barang', done: false },
+      { id: 'fb9', time: '09:15 AM', title: 'Check-Out Awal & Validate TnG', desc: 'Pulangkan kunci dekat Level 7, ambil semula RM200 dan validate parkir!', done: false },
+      { id: 'fb10', time: '09:40 AM', title: 'Parkir @ SkyAvenue (Simpan Beg)', desc: 'Pandu turun ke parkir SkyAvenue dan simpan beg baju dalam bonet', done: false },
+      { id: 'fb11', time: '10:00 AM', title: 'All-Out Genting SkyWorlds!', desc: 'Masuk ikut SkyAvenue Gateway (Aras G), pautkan QR untuk VQ & main puas-puas!', done: false },
+      { id: 'fb12', time: '05:30 PM', title: 'Makan Petang & Gerak Balik', desc: 'Isi perut dekat SkyAvenue sebelum pandu turun balik KL dengan gembira!', done: false }
+    ]
+  },
   prep: [
     { id: 'p1', cat: 'SkyWorlds', text: 'Baju hujan pakai buang (2 helai)', done: false },
     { id: 'p2', cat: 'SkyWorlds', text: 'Powerbank penuh & kabel caj', done: false },
@@ -32,7 +51,7 @@ const INITIAL_DATA = {
     { id: 'p4', cat: 'SkyWorlds', text: 'Jaket nipis / windbreaker & plastik baju basah', done: false },
     { id: 'p5', cat: 'Dokumen & Duit', text: 'Wang tunai RM200 (Deposit Highland Breeze)', done: false },
     { id: 'p6', cat: 'Dokumen & Duit', text: 'Kad Touch n Go (Baki minimum RM30)', done: false },
-    { id: 'p7', cat: 'Dokumen & Duit', text: 'Screenshot baucar HopeGoo & tiket QR SkyWorlds', done: false },
+    { id: 'p7', cat: 'Dokumen & Duit', text: 'Screenshot baucar HopeGoo & baucar MATTA SkyWorlds', done: false },
     { id: 'p8', cat: 'Bilik & Malam', text: 'Sweater / baju tidur tebal & stokin tidur', done: false },
     { id: 'p9', cat: 'Bilik & Malam', text: 'Berus gigi, pencuci muka & toiletries sendiri', done: false },
     { id: 'p10', cat: 'Bilik & Malam', text: 'Barang peribadi & keperluan keselamatan', done: false }
@@ -48,7 +67,7 @@ const LOCATIONS = [
   },
   {
     name: 'Genting SkyWorlds & SkyAvenue',
-    note: 'Taman tema buka 10:00 AM hingga 6:00 PM. Jangan lupa beli bekalan malam dekat 7E/FamilyMart sebelum naik hotel.',
+    note: 'Guna pintu masuk SkyAvenue Gateway di Aras G. Buka 10:00 AM hingga 6:00 PM.',
     waze: 'https://waze.com/ul?q=Genting%20SkyWorlds%20Theme%20Park&navigate=yes',
     maps: 'https://www.google.com/maps/search/?api=1&query=Genting+SkyWorlds+Theme+Park'
   },
@@ -60,11 +79,21 @@ const LOCATIONS = [
   },
   {
     name: 'Genting Highlands Premium Outlets (GHPO)',
-    note: 'Lokasi jalan santai, minum petang dan cuci mata hari Ahad sebelum bertolak balik.',
+    note: 'Lokasi jalan santai, makan tengah hari atau minum petang dan cuci mata.',
     waze: 'https://waze.com/ul?q=Genting%20Highlands%20Premium%20Outlets&navigate=yes',
     maps: 'https://www.google.com/maps/search/?api=1&query=Genting+Highlands+Premium+Outlets'
   }
 ];
+
+function normalizeState(raw) {
+  if (!raw || typeof raw !== 'object') return INITIAL_DATA;
+  return {
+    activePlan: raw.activePlan === 'B' ? 'B' : 'A',
+    flow: raw.flow && raw.flow.sabtu && raw.flow.ahad ? raw.flow : INITIAL_DATA.flow,
+    flowB: raw.flowB && raw.flowB.sabtu && raw.flowB.ahad ? raw.flowB : INITIAL_DATA.flowB,
+    prep: Array.isArray(raw.prep) ? raw.prep : INITIAL_DATA.prep
+  };
+}
 
 export default function App() {
   const [unlocked, setUnlocked] = useState(false);
@@ -77,9 +106,6 @@ export default function App() {
   const [isLive, setIsLive] = useState(false);
   const [newItemText, setNewItemText] = useState('');
   const [countdown, setCountdown] = useState({ d: '00', h: '00', m: '00', s: '00' });
-
-  // Status buka/tutup (FAQ Accordion) untuk setiap kategori Barang
-  // Secara lalai semua tertutup (false) supaya nampak kemas ala-ala FAQ, tekan baru buka!
   const [openCats, setOpenCats] = useState({
     'SkyWorlds': false,
     'Dokumen & Duit': false,
@@ -90,41 +116,51 @@ export default function App() {
   const audioRef = useRef(null);
   const lastSaveRef = useRef(0);
 
+  const activePlan = stateData.activePlan === 'B' ? 'B' : 'A';
+  const currentFlowKey = activePlan === 'B' ? 'flowB' : 'flow';
+  const currentFlow = stateData[currentFlowKey] || INITIAL_DATA.flow;
+
   const toggleCategory = (cat) => {
     setOpenCats((prev) => ({ ...prev, [cat]: !prev[cat] }));
   };
 
   useEffect(() => {
-    const target = new Date('2026-11-14T07:30:00+08:00').getTime();
-    const timer = setInterval(() => {
-      const now = Date.now();
-      const diff = target - now;
+    const targetIso = activePlan === 'B'
+      ? '2026-11-14T10:00:00+08:00'
+      : '2026-11-14T07:30:00+08:00';
+    const target = new Date(targetIso).getTime();
+
+    const updateTimer = () => {
+      const diff = target - Date.now();
       if (diff <= 0) {
         setCountdown({ d: '00', h: '00', m: '00', s: '00' });
         return;
       }
       setCountdown({
-        d: String(Math.floor(diff / (1000 * 60 * 60 * 24))).padStart(2, '0'),
-        h: String(Math.floor((diff / (1000 * 60 * 60)) % 24)).padStart(2, '0'),
-        m: String(Math.floor((diff / 1000 / 60) % 60)).padStart(2, '0'),
+        d: String(Math.floor(diff / 86400000)).padStart(2, '0'),
+        h: String(Math.floor((diff / 3600000) % 24)).padStart(2, '0'),
+        m: String(Math.floor((diff / 60000) % 60)).padStart(2, '0'),
         s: String(Math.floor((diff / 1000) % 60)).padStart(2, '0')
       });
-    }, 1000);
+    };
+
+    updateTimer();
+    const timer = setInterval(updateTimer, 1000);
     return () => clearInterval(timer);
-  }, []);
+  }, [activePlan]);
 
   const fetchLatestState = useCallback(async (silent = false) => {
     if (silent && Date.now() - lastSaveRef.current < 3000) return;
-
     if (!silent) setSyncing(true);
     try {
       const res = await fetch('/api/state', { cache: 'no-store' });
       if (res.ok) {
         const cloudData = await res.json();
         setIsLive(true);
-        if (cloudData && cloudData.flow && cloudData.prep) {
-          setStateData(cloudData);
-          localStorage.setItem('jujuan_genting', JSON.stringify(cloudData));
+        if (cloudData && cloudData.prep) {
+          const clean = normalizeState(cloudData);
+          setStateData(clean);
+          localStorage.setItem('jujuan_genting', JSON.stringify(clean));
           if (!silent) setSyncing(false);
           return;
         }
@@ -132,30 +168,23 @@ export default function App() {
     } catch {
       setIsLive(false);
     }
-
     if (!silent) {
       const saved = localStorage.getItem('jujuan_genting');
-      if (saved) setStateData(JSON.parse(saved));
+      if (saved) setStateData(normalizeState(JSON.parse(saved)));
       setSyncing(false);
     }
   }, []);
 
   useEffect(() => {
     fetchLatestState(false);
-
     const interval = setInterval(() => {
-      if (document.visibilityState === 'visible') {
-        fetchLatestState(true);
-      }
+      if (document.visibilityState === 'visible') fetchLatestState(true);
     }, 5000);
-
     const handleVisibility = () => {
       if (document.visibilityState === 'visible') fetchLatestState(true);
     };
-
     document.addEventListener('visibilitychange', handleVisibility);
     window.addEventListener('focus', handleVisibility);
-
     return () => {
       clearInterval(interval);
       document.removeEventListener('visibilitychange', handleVisibility);
@@ -164,14 +193,15 @@ export default function App() {
   }, [fetchLatestState]);
 
   const saveState = async (updated) => {
+    const clean = normalizeState(updated);
     lastSaveRef.current = Date.now();
-    setStateData(updated);
-    localStorage.setItem('jujuan_genting', JSON.stringify(updated));
+    setStateData(clean);
+    localStorage.setItem('jujuan_genting', JSON.stringify(clean));
     try {
       const res = await fetch('/api/state', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updated)
+        body: JSON.stringify(clean)
       });
       if (res.ok) setIsLive(true);
     } catch {
@@ -183,13 +213,10 @@ export default function App() {
     setUnlocked(true);
     if (audioRef.current) {
       audioRef.current.volume = 0.5;
-      audioRef.current
-        .play()
-        .then(() => {
-          setIsPlaying(true);
-          setBgmMissing(false);
-        })
-        .catch(() => setIsPlaying(false));
+      audioRef.current.play().then(() => {
+        setIsPlaying(true);
+        setBgmMissing(false);
+      }).catch(() => setIsPlaying(false));
     }
     confetti({ particleCount: 55, spread: 65, origin: { y: 0.7 } });
   };
@@ -200,25 +227,30 @@ export default function App() {
       audioRef.current.pause();
       setIsPlaying(false);
     } else {
-      audioRef.current
-        .play()
-        .then(() => {
-          setIsPlaying(true);
-          setBgmMissing(false);
-        })
-        .catch(() => setBgmMissing(true));
+      audioRef.current.play().then(() => {
+        setIsPlaying(true);
+        setBgmMissing(false);
+      }).catch(() => setBgmMissing(true));
     }
   };
 
+  const switchPlan = (plan) => {
+    if (plan === activePlan) return;
+    saveState({ ...stateData, activePlan: plan });
+  };
+
   const toggleFlowItem = (day, id) => {
-    const updatedDay = stateData.flow[day].map((item) => {
+    const updatedDay = currentFlow[day].map((item) => {
       if (item.id === id) {
         if (!item.done) confetti({ particleCount: 25, spread: 45, origin: { y: 0.8 } });
         return { ...item, done: !item.done };
       }
       return item;
     });
-    saveState({ ...stateData, flow: { ...stateData.flow, [day]: updatedDay } });
+    saveState({
+      ...stateData,
+      [currentFlowKey]: { ...currentFlow, [day]: updatedDay }
+    });
   };
 
   const togglePrepItem = (id) => {
@@ -243,7 +275,6 @@ export default function App() {
     };
     saveState({ ...stateData, prep: [...stateData.prep, newItem] });
     setNewItemText('');
-    // Automatik buka accordion 'Tambahan Kita' bila barang baru ditambah
     setOpenCats((prev) => ({ ...prev, 'Tambahan Kita': true }));
   };
 
@@ -251,7 +282,7 @@ export default function App() {
     saveState({ ...stateData, prep: stateData.prep.filter((i) => i.id !== id) });
   };
 
-  const allFlow = [...stateData.flow.sabtu, ...stateData.flow.ahad];
+  const allFlow = [...currentFlow.sabtu, ...currentFlow.ahad];
   const flowPercent = Math.round((allFlow.filter((i) => i.done).length / allFlow.length) * 100);
   const prepPercent = Math.round((stateData.prep.filter((i) => i.done).length / stateData.prep.length) * 100);
 
@@ -282,7 +313,7 @@ export default function App() {
               <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 border border-white/15 text-xs text-sky-200 mb-4">
                 <Lock className="w-3 h-3" /> Private Trip Pass
               </div>
-              <h1 className="text-5xl font-bold tracking-tight bg-gradient-to-b from-white to-white/70 bg-clip-text text-transparent">
+              <h1 className="text-5xl font-bold tracking-tight bg-linear-to-b from-white to-white/70 bg-clip-text text-transparent">
                 14 - 15 Nov
               </h1>
               <p className="text-sm text-white/70 mt-1">Sabtu & Ahad • Genting Highlands</p>
@@ -297,7 +328,7 @@ export default function App() {
               </div>
               <h2 className="text-xl font-bold text-white">Jujuan Go Genting 🎢🌫️</h2>
               <p className="text-xs text-white/75 mt-1 leading-relaxed">
-                Kad tentatif, lokasi Waze dan senarai persediaan rasmi kita dah siap. Tekan di bawah untuk mula semak!
+                Kad tentatif fleksibel (Pelan A & Pelan B), lokasi Waze dan senarai barang kita dah siap!
               </p>
             </div>
 
@@ -343,7 +374,7 @@ export default function App() {
         <section className="bg-white/10 backdrop-blur-2xl border border-white/20 rounded-3xl p-6 mb-5 shadow-xl">
           <div className="flex items-center justify-between mb-2">
             <span className="text-[11px] font-semibold uppercase tracking-wider text-sky-300">
-              Weekend Getaway
+              {activePlan === 'A' ? 'Pelan A • Sabtu SkyWorlds' : 'Pelan B • Ahad SkyWorlds'}
             </span>
             <span className="text-xs bg-white/15 px-2.5 py-0.5 rounded-full border border-white/10">
               15°C Misty Vibe
@@ -375,16 +406,16 @@ export default function App() {
                 <span className="font-semibold text-sky-300">{prepPercent}%</span>
               </div>
               <div className="h-2 bg-black/30 rounded-full overflow-hidden">
-                <div className="h-full bg-gradient-to-r from-sky-400 to-indigo-400 transition-all duration-500" style={{ width: `${prepPercent}%` }} />
+                <div className="h-full bg-linear-to-r from-sky-400 to-indigo-400 transition-all duration-500" style={{ width: `${prepPercent}%` }} />
               </div>
             </div>
             <div>
               <div className="flex justify-between text-white/80 mb-1">
-                <span>Perjalanan (Tentative Flow)</span>
+                <span>Perjalanan (Pelan {activePlan})</span>
                 <span className="font-semibold text-emerald-300">{flowPercent}%</span>
               </div>
               <div className="h-2 bg-black/30 rounded-full overflow-hidden">
-                <div className="h-full bg-gradient-to-r from-emerald-400 to-teal-400 transition-all duration-500" style={{ width: `${flowPercent}%` }} />
+                <div className="h-full bg-linear-to-r from-emerald-400 to-teal-400 transition-all duration-500" style={{ width: `${flowPercent}%` }} />
               </div>
             </div>
           </div>
@@ -419,6 +450,45 @@ export default function App() {
 
         {mainTab === 'flow' && (
           <motion.section initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
+            {/* Suis Tukar Pelan A / Pelan B */}
+            <div className="bg-white/10 backdrop-blur-2xl border border-white/15 rounded-2xl p-3 mb-4">
+              <div className="flex items-center justify-between px-1 mb-2">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-sky-300">
+                  Pilih Mod Perjalanan (Auto-Sync)
+                </span>
+                <span className="text-[10px] text-white/60">Tiket Open-Date</span>
+              </div>
+              <div className="grid grid-cols-2 gap-1.5 bg-black/30 p-1 rounded-xl border border-white/10">
+                <button
+                  type="button"
+                  onClick={() => switchPlan('A')}
+                  className={`py-2 px-2 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                    activePlan === 'A'
+                      ? 'bg-sky-400 text-slate-950 shadow-md'
+                      : 'text-white/70 hover:text-white'
+                  }`}
+                >
+                  🎢 Pelan A: Sabtu
+                </button>
+                <button
+                  type="button"
+                  onClick={() => switchPlan('B')}
+                  className={`py-2 px-2 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                    activePlan === 'B'
+                      ? 'bg-indigo-400 text-slate-950 shadow-md'
+                      : 'text-white/70 hover:text-white'
+                  }`}
+                >
+                  🌫️ Pelan B: Ahad
+                </button>
+              </div>
+              <p className="text-[11px] text-white/70 mt-2 px-1 leading-relaxed">
+                {activePlan === 'A'
+                  ? 'Sabtu pagi terus masuk SkyWorlds, malam check-in & Ahad bangun lambat santai.'
+                  : 'Sabtu gerak santai & check-in 3:00 PM segar, Ahad check-out 9:15 AM baru masuk SkyWorlds!'}
+              </p>
+            </div>
+
             <div className="flex gap-2 mb-4">
               {['sabtu', 'ahad'].map((d) => (
                 <button
@@ -436,7 +506,7 @@ export default function App() {
             </div>
 
             <div className="space-y-3">
-              {stateData.flow[dayTab].map((item) => (
+              {currentFlow[dayTab].map((item) => (
                 <div
                   key={item.id}
                   onClick={() => toggleFlowItem(dayTab, item.id)}
@@ -497,7 +567,6 @@ export default function App() {
                   key={category}
                   className="bg-white/10 backdrop-blur-2xl border border-white/15 rounded-3xl overflow-hidden transition-all"
                 >
-                  {/* Header Accordion ala-ala FAQ (Klik untuk Buka / Tutup) */}
                   <button
                     type="button"
                     onClick={() => toggleCategory(category)}
@@ -524,7 +593,6 @@ export default function App() {
                     />
                   </button>
 
-                  {/* Senarai Barang (Expand / Collapse secara smooth) */}
                   <AnimatePresence initial={false}>
                     {isOpen && (
                       <motion.div
